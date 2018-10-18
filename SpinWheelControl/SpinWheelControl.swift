@@ -114,7 +114,7 @@ open class SpinWheelControl: UIControl {
     @objc static let kZoomZoneThreshold = 1.5
     @objc static let kPreferredFramesPerSecond: Int = 60
     @objc static let kMinRandomSpinVelocity: Velocity = 12
-    @objc static let kDefaultSpinVelocityMultiplier: Velocity = 0.75
+    @objc static let kDefaultSpinVelocityMultiplier: Velocity = 0.1
     
     //A circle = 360 degrees = 2 * pi radians
     @objc let kCircleRadians: Radians = 2 * CGFloat.pi
@@ -174,7 +174,7 @@ open class SpinWheelControl: UIControl {
     @objc var radiansToDestinationSlice: Radians {
         return snapDestinationRadians - currentRadians
     }
-    
+
     //The velocity of the spinwheel
     @objc var velocity: Velocity {
         var computedVelocity: Velocity = 0
@@ -237,7 +237,13 @@ open class SpinWheelControl: UIControl {
         
         self.drawWheel()
     }
-    
+
+	override open var bounds: CGRect {
+		didSet {
+			clear()
+			drawWheel()
+		}
+	}
     
     //MARK: Methods
     //Clear the SpinWheelControl from the screen
@@ -257,7 +263,7 @@ open class SpinWheelControl: UIControl {
     //Draw the spinWheelView
     @objc public func drawWheel() {
         spinWheelView = UIView(frame: self.bounds)
-        
+
         guard self.dataSource?.numberOfWedgesInSpinWheel(spinWheel: self) != nil else {
             return
         }
@@ -292,8 +298,14 @@ open class SpinWheelControl: UIControl {
         
         //Rotate the wheel to put the first wedge at the top
         self.spinWheelView.transform = CGAffineTransform(rotationAngle: -(snappingPositionRadians) - (radiansPerWedge / 2))
-        
+        self.spinWheelView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         self.addSubview(self.spinWheelView)
+
+		if let overlay = self.dataSource?.overlayViewForSpinWheel(spinWheel: self) {
+			overlay.frame = self.spinWheelView.bounds
+			overlay.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+			self.spinWheelView.addSubview(overlay)
+		}
     }
     
     
@@ -489,7 +501,7 @@ open class SpinWheelControl: UIControl {
     
     
     //Select a wedge with an index offset relative to 0 position. May be positive or negative.
-    @objc func selectWedgeAtIndexOffset(index: Int, animated: Bool) {
+    @objc public func selectWedgeAtIndexOffset(index: Int, animated: Bool) {
         snapDestinationRadians = -(snappingPositionRadians) + (CGFloat(index) * radiansPerWedge) - (radiansPerWedge / 2)
         
         if currentRadians != snapDestinationRadians {
@@ -498,6 +510,11 @@ open class SpinWheelControl: UIControl {
         else {
             return
         }
+
+		guard animated else {
+			self.spinWheelView.transform = CGAffineTransform(rotationAngle: snapDestinationRadians)
+			return
+		}
         
         currentStatus = .snapping
         

@@ -15,4 +15,7 @@ import Foundation
     
     //Returns the SpinWheelWedge at the specified index of the SpinWheelControl
     @objc func wedgeForSliceAtIndex(index: UInt) -> SpinWheelWedge
+
+	//Returns a UIView that will be overlaid on the SpinWheelControl
+	@objc func overlayViewForSpinWheel(spinWheel: SpinWheelControl) -> UIView
 }

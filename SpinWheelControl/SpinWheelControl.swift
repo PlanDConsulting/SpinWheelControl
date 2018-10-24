@@ -15,7 +15,7 @@ import UIKit
 
 public typealias Degrees = CGFloat
 public typealias Radians = CGFloat
-typealias Velocity = CGFloat
+public typealias Velocity = CGFloat
 
 public enum SpinWheelStatus {
     case idle, decelerating, snapping
@@ -106,15 +106,15 @@ open class SpinWheelControl: UIControl {
     
     @objc static let kMinimumRadiansForSpin: Radians = 0.1
     @objc static let kMinDistanceFromCenter: CGFloat = 30.0
-    @objc static let kMaxVelocity: Velocity = 20
-    @objc static let kDecelerationVelocityMultiplier: CGFloat = 0.98 //The deceleration multiplier is not to be set past 0.99 in order to avoid issues
-    @objc static let kSpeedToSnap: CGFloat = 0.1
+    @objc open var kMaxVelocity: Velocity = 20
+    @objc open var kDecelerationVelocityMultiplier: CGFloat = 0.98 //The deceleration multiplier is not to be set past 0.99 in order to avoid issues
+    @objc open var kSpeedToSnap: CGFloat = 0.1
     @objc static let kSnapRadiansProximity: Radians = 0.001
     @objc static let kWedgeSnapVelocityMultiplier: CGFloat = 10.0
     @objc static let kZoomZoneThreshold = 1.5
     @objc static let kPreferredFramesPerSecond: Int = 60
     @objc static let kMinRandomSpinVelocity: Velocity = 12
-    @objc static let kDefaultSpinVelocityMultiplier: Velocity = 0.1
+    @objc open var kDefaultSpinVelocityMultiplier: Velocity = 0.1
     
     //A circle = 360 degrees = 2 * pi radians
     @objc let kCircleRadians: Radians = 2 * CGFloat.pi
@@ -186,11 +186,11 @@ open class SpinWheelControl: UIControl {
         }
         
         //If the velocity is beyond the maximum allowed velocity, throttle it
-        if computedVelocity > SpinWheelControl.kMaxVelocity {
-            computedVelocity = SpinWheelControl.kMaxVelocity
+        if computedVelocity > kMaxVelocity {
+            computedVelocity = kMaxVelocity
         }
-        else if computedVelocity < -SpinWheelControl.kMaxVelocity {
-            computedVelocity = -SpinWheelControl.kMaxVelocity
+        else if computedVelocity < -kMaxVelocity {
+            computedVelocity = -kMaxVelocity
         }
         
         return computedVelocity
@@ -389,7 +389,7 @@ open class SpinWheelControl: UIControl {
     
     //After user has lifted their finger from dragging, begin the deceleration
     func beginDeceleration(withVelocity customVelocity: Velocity? = nil) {
-        if let customVelocity = customVelocity, customVelocity <= SpinWheelControl.kMaxVelocity {
+        if let customVelocity = customVelocity, customVelocity <= kMaxVelocity {
             currentDecelerationVelocity = customVelocity
         } else {
             currentDecelerationVelocity = velocity
@@ -419,12 +419,12 @@ open class SpinWheelControl: UIControl {
     
     //Deceleration step run for each frame of decelerationDisplayLink
     @objc func decelerationStep() {
-        let newVelocity: Velocity = currentDecelerationVelocity * SpinWheelControl.kDecelerationVelocityMultiplier
+        let newVelocity: Velocity = currentDecelerationVelocity * kDecelerationVelocityMultiplier
         let radiansToRotate: Radians = currentDecelerationVelocity / CGFloat(SpinWheelControl.kPreferredFramesPerSecond)
         
         //If the spinwheel has slowed down to under the minimum speed, end the deceleration
-        if newVelocity <= SpinWheelControl.kSpeedToSnap &&
-            newVelocity >= -SpinWheelControl.kSpeedToSnap {
+        if newVelocity <= kSpeedToSnap &&
+            newVelocity >= -kSpeedToSnap {
             endDeceleration()
         }
             //else continue decelerating the SpinWheel
@@ -555,7 +555,7 @@ open class SpinWheelControl: UIControl {
         
         //If the velocity multiplier is valid, spin the wheel.
         if (0...1).contains(velocityMultiplier) {
-            beginDeceleration(withVelocity: SpinWheelControl.kMaxVelocity * velocityMultiplier)
+            beginDeceleration(withVelocity: kMaxVelocity * velocityMultiplier)
         }
     }
     
@@ -563,16 +563,16 @@ open class SpinWheelControl: UIControl {
     //Perform a random spin of the wheel
     @objc public func randomSpin() {
         //Get the range to find a random number between
-        let range = UInt32(SpinWheelControl.kMaxVelocity - SpinWheelControl.kMinRandomSpinVelocity)
+        let range = UInt32(kMaxVelocity - SpinWheelControl.kMinRandomSpinVelocity)
         
         //The velocity subtractor is a random number between 1 and the range value
         let velocitySubtractor = Double(arc4random_uniform(range)) + 1
         
         //Subtract the velocity subtractor from max velocity to get the final random velocity
-        let randomSpinVelocity = Velocity(Double(SpinWheelControl.kMaxVelocity) - velocitySubtractor)
+        let randomSpinVelocity = Velocity(Double(kMaxVelocity) - velocitySubtractor)
         
         //Get the spin multiplier using the new random spin velocity value
-        let randomSpinMultiplier = randomSpinVelocity / SpinWheelControl.kMaxVelocity
+        let randomSpinMultiplier = randomSpinVelocity / kMaxVelocity
         
         spin(velocityMultiplier: randomSpinMultiplier)
     }

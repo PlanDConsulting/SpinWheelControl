@@ -146,7 +146,8 @@ open class SpinWheelControl: UIControl {
     var wedgeLabelOrientationIndex: WedgeLabelOrientation = WedgeLabelOrientation.inOut
     
     @objc public var selectedIndex: Int = 0
-    
+    private var currentNearestWedge: Int = 0
+
     //MARK: Computed Properties
     @objc var spinWheelCenter: CGPoint {
         return convert(center, from: superview)
@@ -367,7 +368,8 @@ open class SpinWheelControl: UIControl {
         self.spinWheelView.transform = self.spinWheelView.transform.rotated(by: touchRadiansDifference)
         
         delegate?.spinWheelDidRotateByRadians?(radians: touchRadiansDifference)
-        
+		updateCurrentNearestWedgeIfNeeded()
+
         return true
     }
     
@@ -432,6 +434,7 @@ open class SpinWheelControl: UIControl {
             currentDecelerationVelocity = newVelocity
             self.spinWheelView.transform = self.spinWheelView.transform.rotated(by: -radiansToRotate)
             delegate?.spinWheelDidRotateByRadians?(radians: -radiansToRotate)
+			updateCurrentNearestWedgeIfNeeded()
         }
     }
     
@@ -511,6 +514,8 @@ open class SpinWheelControl: UIControl {
             return
         }
 
+		updateCurrentNearestWedgeIfNeeded()
+
 		guard animated else {
 			self.spinWheelView.transform = CGAffineTransform(rotationAngle: snapDestinationRadians)
 			return
@@ -528,7 +533,15 @@ open class SpinWheelControl: UIControl {
         }
         snapDisplayLink?.add(to: RunLoop.main, forMode: RunLoopMode.commonModes)
     }
-    
+
+	private func updateCurrentNearestWedgeIfNeeded() {
+		let nearestWedge = Int(currentRadians / radiansPerWedge)
+		if nearestWedge != currentNearestWedge {
+			delegate?.spinWheelDidRotateToNewWedge?(spinWheel: self)
+			currentNearestWedge = nearestWedge
+		}
+
+	}
     
     //Distance of a point from the center of the spinwheel
     @objc func distanceFromCenter(point: CGPoint) -> CGFloat {

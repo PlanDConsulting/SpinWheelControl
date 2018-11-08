@@ -84,7 +84,7 @@ open class SpinWheelControl: UIControl {
     }
     
     
-    @IBInspectable var snapOrientation: CGFloat = SpinWheelDirection.up.degreesValue {
+    @IBInspectable open var snapOrientation: CGFloat = SpinWheelDirection.up.degreesValue {
         didSet {
             snappingPositionRadians = snapOrientation.toRadians
         }
@@ -517,7 +517,9 @@ open class SpinWheelControl: UIControl {
 		updateCurrentNearestWedgeIfNeeded()
 
 		guard animated else {
-			self.spinWheelView.transform = CGAffineTransform(rotationAngle: snapDestinationRadians)
+			DispatchQueue.main.async {
+				self.spinWheelView.transform = CGAffineTransform(rotationAngle: self.snapDestinationRadians)
+			}
 			return
 		}
         
